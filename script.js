@@ -58,6 +58,10 @@ function saveCurrentConversation() {
     messageElements.forEach(element => {
         const isUser = element.classList.contains('user-message');
         const content = element.querySelector('p').textContent;
+        // 跳过欢迎消息，只保存真实的对话
+        if (content === '你好！我是 Claude，很高兴为您服务。请告诉我您需要什么帮助？' && !isUser) {
+            return;
+        }
         messages.push({
             role: isUser ? 'user' : 'assistant',
             content: content
@@ -138,12 +142,20 @@ function deleteConversation(conversationId) {
     conversations = conversations.filter(c => c.id !== conversationId);
     saveConversations();
     
-    // 如果删除的是当前对话，创建新对话
+    // 如果删除的是当前对话
     if (currentConversationId === conversationId) {
-        newConversation();
-    } else {
-        loadConversationList();
+        // 如果还有其他对话，加载第一个对话
+        if (conversations.length > 0) {
+            currentConversationId = conversations[0].id;
+            loadConversation(currentConversationId);
+        } else {
+            // 如果没有对话了，创建新对话
+            newConversation();
+        }
     }
+    
+    // 更新对话列表
+    loadConversationList();
 }
 
 // 更新对话标题
