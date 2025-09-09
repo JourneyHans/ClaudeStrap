@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Web Interface</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 对话历史侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>对话历史</h2>
+                <div class="sidebar-actions">
+                    <button onclick="newConversation()" class="new-chat-btn">➕ 新对话</button>
+                    <button onclick="exportAllConversations()" class="export-all-btn">📥 导出全部</button>
+                    <button onclick="clearAllHistory()" class="clear-all-btn">🗑️ 清空历史</button>
+                </div>
+            </div>
+            <div id="conversationList" class="conversation-list">
+                <!-- 对话列表将在这里动态生成 -->
+            </div>
+        </aside>
+
+        <!-- 主聊天区域 -->
+        <div class="main-container">
+            <div class="container">
+                <header>
+                    <h1>Claude Web Interface</h1>
+                    <div class="api-config">
+                        <input type="password" id="apiKey" placeholder="输入您的 API Key" />
+                        <input type="text" id="apiUrl" placeholder="API URL (可选)" value="https://api.anthropic.com" />
+                        <button onclick="saveConfig()">保存配置</button>
+                    </div>
+                </header>
+
+                <main>
+                    <div class="chat-container">
+                        <div id="chatMessages" class="chat-messages">
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    <p>你好！我是 Claude，很高兴为您服务。请告诉我您需要什么帮助？</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-area">
+                            <textarea id="userInput" placeholder="输入您的问题..." rows="3"></textarea>
+                            <div class="input-controls">
+                                <button id="sendButton" onclick="sendMessage()">发送</button>
+                                <button onclick="clearChat()">清空对话</button>
+                                <button onclick="exportConversation()">📥 导出对话</button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在思考...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
