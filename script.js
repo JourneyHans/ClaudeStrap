@@ -33,6 +33,9 @@ function loadConfig() {
         document.getElementById('apiUrl').value = savedApiUrl;
         apiUrl = savedApiUrl;
     }
+    
+    // 初始化API状态显示
+    updateApiStatus();
 }
 
 // 加载对话列表
@@ -260,6 +263,95 @@ function editConversationTitle(conversationId) {
     }
 }
 
+// 切换API密钥可见性
+function toggleApiKeyVisibility() {
+    const apiKeyInput = document.getElementById('apiKey');
+    const toggleButton = document.querySelector('.toggle-visibility');
+    
+    if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        toggleButton.textContent = '🙈';
+        toggleButton.title = '隐藏API密钥';
+    } else {
+        apiKeyInput.type = 'password';
+        toggleButton.textContent = '👁️';
+        toggleButton.title = '显示API密钥';
+    }
+}
+
+// 复制API密钥
+function copyApiKey() {
+    const apiKeyInput = document.getElementById('apiKey');
+    if (apiKeyInput.value) {
+        navigator.clipboard.writeText(apiKeyInput.value).then(() => {
+            showToast('API密钥已复制到剪贴板');
+        }).catch(() => {
+            // 备用方案
+            apiKeyInput.select();
+            document.execCommand('copy');
+            showToast('API密钥已复制到剪贴板');
+        });
+    } else {
+        showToast('请先输入API密钥');
+    }
+}
+
+// 复制API URL
+function copyApiUrl() {
+    const apiUrlInput = document.getElementById('apiUrl');
+    if (apiUrlInput.value) {
+        navigator.clipboard.writeText(apiUrlInput.value).then(() => {
+            showToast('API URL已复制到剪贴板');
+        }).catch(() => {
+            // 备用方案
+            apiUrlInput.select();
+            document.execCommand('copy');
+            showToast('API URL已复制到剪贴板');
+        });
+    } else {
+        showToast('请先输入API URL');
+    }
+}
+
+// 显示提示消息
+function showToast(message) {
+    // 创建提示元素
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    
+    // 添加到页面
+    document.body.appendChild(toast);
+    
+    // 显示动画
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // 3秒后隐藏
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// 更新API状态显示
+function updateApiStatus() {
+    const statusElement = document.getElementById('apiStatus');
+    const indicator = statusElement.querySelector('.status-indicator');
+    const text = statusElement.querySelector('span:last-child');
+    
+    if (apiKey) {
+        indicator.className = 'status-indicator configured';
+        text.textContent = '已配置';
+    } else {
+        indicator.className = 'status-indicator not-configured';
+        text.textContent = '未配置';
+    }
+}
+
 // 保存配置
 function saveConfig() {
     apiKey = document.getElementById('apiKey').value;
@@ -268,7 +360,8 @@ function saveConfig() {
     localStorage.setItem('claude_api_key', apiKey);
     localStorage.setItem('claude_api_url', apiUrl);
     
-    alert('配置已保存！');
+    updateApiStatus();
+    showToast('配置已保存！');
 }
 
 // 发送消息

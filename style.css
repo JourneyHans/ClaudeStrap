@@ -243,15 +243,45 @@ header h1 {
     font-weight: 600;
 }
 
+.api-help {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.api-help p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin: 0;
+}
+
+.api-help a {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.api-help a:hover {
+    text-decoration: none;
+}
+
 .api-config {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
+    align-items: stretch;
     flex-wrap: wrap;
     justify-content: center;
 }
 
-.api-config input {
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+}
+
+.input-group input {
+    flex: 1;
     padding: 8px 12px;
     border: none;
     border-radius: 8px;
@@ -261,20 +291,67 @@ header h1 {
     min-width: 200px;
 }
 
-.api-config button {
-    padding: 8px 16px;
+.input-group button {
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    min-width: 35px;
+}
+
+.input-group button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.api-config button.save-config {
+    padding: 10px 20px;
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
     transition: all 0.3s ease;
 }
 
-.api-config button:hover {
+.api-config button.save-config:hover {
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.api-status {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-indicator.configured {
+    background: #28a745;
+}
+
+.status-indicator.not-configured {
+    background: #dc3545;
+}
+
+.status-indicator.default {
+    background: #6c757d;
 }
 
 main {
@@ -547,4 +624,27 @@ textarea:focus {
 .chat-messages::-webkit-scrollbar-thumb:hover,
 .conversation-list::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+}
+
+/* Toast 提示样式 */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
 }

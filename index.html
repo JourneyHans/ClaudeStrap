@@ -28,10 +28,30 @@
             <div class="container">
                 <header>
                     <h1>Claude Web Interface</h1>
+                    <div class="api-help">
+                        <p>🔑 需要Claude API密钥才能使用 - <a href="https://console.anthropic.com/" target="_blank">获取API密钥</a></p>
+                    </div>
                     <div class="api-config">
-                        <input type="password" id="apiKey" placeholder="输入您的 API Key" />
-                        <input type="text" id="apiUrl" placeholder="API URL (可选)" value="https://api.anthropic.com" />
-                        <button onclick="saveConfig()">保存配置</button>
+                        <div class="input-group">
+                            <input type="password" id="apiKey" placeholder="输入您的 Claude API Key" />
+                            <button type="button" class="toggle-visibility" onclick="toggleApiKeyVisibility()" title="显示/隐藏API密钥">
+                                👁️
+                            </button>
+                            <button type="button" class="copy-api" onclick="copyApiKey()" title="复制API密钥">
+                                📋
+                            </button>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="apiUrl" placeholder="API URL (可选)" value="https://api.anthropic.com" />
+                            <button type="button" class="copy-url" onclick="copyApiUrl()" title="复制API URL">
+                                📋
+                            </button>
+                        </div>
+                        <button onclick="saveConfig()">💾 保存配置</button>
+                    </div>
+                    <div class="api-status" id="apiStatus">
+                        <span class="status-indicator">⚪</span>
+                        <span>未配置</span>
                     </div>
                 </header>
 
