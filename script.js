@@ -444,6 +444,8 @@ async function sendMessageStream() {
         return;
     }
 
+    console.log('Starting streaming message...');
+
     // 添加用户消息到聊天界面
     addMessage(message, 'user');
 
@@ -455,14 +457,35 @@ async function sendMessageStream() {
 
     try {
         await callClaudeAPIStream(message);
+        console.log('Streaming completed successfully');
         hideLoading();
     } catch (error) {
+        console.error('Streaming error:', error);
         hideLoading();
-        addMessage(`错误: ${error.message}`, 'bot');
+        addMessage(`流式响应错误: ${error.message}`, 'bot');
+
+        // 提供回退选项
+        addMessage('提示：如果流式响应持续失败，请使用普通的"发送"按钮', 'bot');
     }
 }
 // 调用 Claude API 流式响应
 async function callClaudeAPIStream(message) {
+    console.log('Starting stream API call...');
+
+    const requestBody = {
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1024,
+        stream: true,
+        messages: [
+            {
+                role: 'user',
+                content: message
+            }
+        ]
+    };
+
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch(`${apiUrl}/v1/messages`, {
         method: 'POST',
         headers: {
@@ -470,18 +493,11 @@ async function callClaudeAPIStream(message) {
             'x-api-key': apiKey,
             'anthropic-version': '2023-06-01'
         },
-        body: JSON.stringify({
-            model: 'claude-3-haiku-20240307',
-            max_tokens: 1024,
-            stream: true,
-            messages: [
-                {
-                    role: 'user',
-                    content: message
-                }
-            ]
-        })
+        body: JSON.stringify(requestBody)
     });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
 
     if (!response.ok) {
         let errorDetails = `HTTP ${response.status}`;
@@ -490,9 +506,20 @@ async function callClaudeAPIStream(message) {
             errorDetails = errorData.error?.message || errorDetails;
             console.error('API Error:', errorData);
         } catch (e) {
-            console.error('Response not JSON:', await response.text());
+            const errorText = await response.text();
+            console.error('Response not JSON:', errorText);
+            errorDetails = `HTTP ${response.status}: ${errorText}`;
         }
         throw new Error(errorDetails);
+    }
+
+    console.log('Stream response successful, starting to read...');
+    console.log('Response body type:', typeof response.body);
+    console.log('Response body readable:', response.body);
+
+    // 检查是否支持流式响应
+    if (!response.body) {
+        throw new Error('浏览器不支持流式响应');
     }
 
     // 创建一个新的消息元素用于流式显示
@@ -528,24 +555,45 @@ async function callClaudeAPIStream(message) {
             const lines = chunk.split('\n');
 
             for (const line of lines) {
+                if (line.trim() === '') continue;
+
                 if (line.startsWith('data: ')) {
                     const data = line.slice(6);
                     if (data === '[DONE]') continue;
 
                     try {
                         const parsed = JSON.parse(data);
+
+                        // 处理不同类型的流式事件
                         if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                             fullContent += parsed.delta.text;
                             paragraph.textContent = fullContent;
                             // 实时滚动到底部
                             chatMessages.scrollTop = chatMessages.scrollHeight;
                         }
+
+                        // 处理消息开始事件
+                        if (parsed.type === 'message_start' && parsed.message?.content) {
+                            // 可以在这里初始化消息结构
+                        }
+
+                        // 处理消息结束事件
+                        if (parsed.type === 'message_delta' && parsed.delta?.stop_reason) {
+                            // 消息结束，可以在这里做清理工作
+                        }
+
                     } catch (e) {
-                        // 忽略解析错误
+                        console.warn('Failed to parse SSE data:', data, e);
                     }
+                } else if (line === 'data: [DONE]') {
+                    // 流式响应结束
+                    break;
                 }
             }
         }
+    } catch (error) {
+        console.error('Stream reading error:', error);
+        throw new Error('流式响应读取失败: ' + error.message);
     } finally {
         reader.releaseLock();
     }
