@@ -5,7 +5,10 @@
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(chmod:*)",
+      "Bash(./update-version.sh:*)"
     ],
     "deny": [],
     "ask": []

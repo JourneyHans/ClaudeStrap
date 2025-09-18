@@ -4,11 +4,24 @@ let conversationHistory = [];
 let currentConversationId = null;
 let conversations = [];
 
+// 版本信息
+const APP_VERSION = 'v0.1';
+const GIT_COMMIT = '845fa72';
+
+// 设置版本信息
+function setVersionInfo() {
+    const versionElement = document.getElementById('versionInfo');
+    if (versionElement) {
+        versionElement.innerHTML = `<span class="version-badge">${APP_VERSION}(${GIT_COMMIT})</span>`;
+    }
+}
+
 // 页面加载时从本地存储读取配置
 window.onload = function() {
+    setVersionInfo();
     loadConfig();
     loadConversations();
-    
+
     // 如果没有对话，创建新对话；否则加载最近的对话
     if (conversations.length === 0) {
         newConversation();
