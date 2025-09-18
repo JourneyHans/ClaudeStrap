@@ -368,34 +368,33 @@ function saveConfig() {
 async function sendMessage() {
     const userInput = document.getElementById('userInput');
     const message = userInput.value.trim();
-    
+
     if (!message) return;
-    
+
     if (!apiKey) {
         alert('请先输入 API Key');
         return;
     }
-    
+
     // 添加用户消息到聊天界面
     addMessage(message, 'user');
-    
+
     // 清空输入框
     userInput.value = '';
-    
+
     // 显示加载状态
     showLoading();
-    
+
     try {
-        const response = await callClaudeAPI(message);
+        const response = await callClaudeAPIStream(message);
         hideLoading();
-        addMessage(response, 'bot');
     } catch (error) {
         hideLoading();
         addMessage(`错误: ${error.message}`, 'bot');
     }
 }
 
-// 调用 Claude API
+// 调用 Claude API (保持原有功能用于其他可能的需求)
 async function callClaudeAPI(message) {
     const response = await fetch(`${apiUrl}/v1/messages`, {
         method: 'POST',
@@ -415,14 +414,104 @@ async function callClaudeAPI(message) {
             ]
         })
     });
-    
+
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error?.message || `HTTP ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.content[0].text;
+}
+
+// 调用 Claude API 流式响应
+async function callClaudeAPIStream(message) {
+    const response = await fetch(`${apiUrl}/v1/messages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-3-sonnet-20240229',
+            max_tokens: 1024,
+            stream: true,
+            messages: [
+                {
+                    role: 'user',
+                    content: message
+                }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+    }
+
+    // 创建一个新的消息元素用于流式显示
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = '';
+    messageContent.appendChild(paragraph);
+
+    messageDiv.appendChild(messageContent);
+    chatMessages.appendChild(messageDiv);
+
+    // 滚动到底部
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 处理流式响应
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                            fullContent += parsed.delta.text;
+                            paragraph.textContent = fullContent;
+                            // 实时滚动到底部
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+        }
+    } finally {
+        reader.releaseLock();
+    }
+
+    // 保存完整的对话
+    setTimeout(() => {
+        saveCurrentConversation();
+    }, 100);
+
+    return fullContent;
 }
 
 // 添加消息到聊天界面
