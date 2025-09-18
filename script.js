@@ -424,6 +424,36 @@ async function callClaudeAPI(message) {
     return data.content[0].text;
 }
 
+// 发送消息（流式响应版本）
+async function sendMessageStream() {
+    const userInput = document.getElementById('userInput');
+    const message = userInput.value.trim();
+
+    if (!message) return;
+
+    if (!apiKey) {
+        alert('请先输入 API Key');
+        return;
+    }
+
+    // 添加用户消息到聊天界面
+    addMessage(message, 'user');
+
+    // 清空输入框
+    userInput.value = '';
+
+    // 显示加载状态
+    showLoading();
+
+    try {
+        await callClaudeAPIStream(message);
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        addMessage(`错误: ${error.message}`, 'bot');
+    }
+}
+
 // 调用 Claude API 流式响应
 async function callClaudeAPIStream(message) {
     const response = await fetch(`${apiUrl}/v1/messages`, {
