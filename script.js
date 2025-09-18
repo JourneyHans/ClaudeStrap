@@ -486,7 +486,7 @@ async function callClaudeAPIStream(message) {
     console.log('Starting stream API call...');
 
     const requestBody = {
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-sonnet-20240229',
         max_tokens: 1024,
         stream: true,
         messages: [
@@ -554,59 +554,59 @@ async function callClaudeAPIStream(message) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     // 处理流式响应
+    if (!response.body) {
+        throw new Error('响应体为空，不支持流式响应');
+    }
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
+
+    console.log('Starting to read stream...');
 
     try {
         while (true) {
             const { done, value } = await reader.read();
 
+            console.log('Read chunk:', { done, valueSize: value?.length });
+
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
+            console.log('Decoded chunk:', chunk);
+
             const lines = chunk.split('\n');
 
             for (const line of lines) {
                 if (line.trim() === '') continue;
 
+                console.log('Processing line:', line);
+
                 if (line.startsWith('data: ')) {
                     const data = line.slice(6);
-                    if (data === '[DONE]') continue;
+                    if (data === '[DONE]') {
+                        console.log('Stream completed');
+                        break;
+                    }
 
                     try {
                         const parsed = JSON.parse(data);
+                        console.log('Parsed data:', parsed);
 
-                        // 处理不同类型的流式事件
                         if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                             fullContent += parsed.delta.text;
                             paragraph.textContent = fullContent;
-                            // 实时滚动到底部
                             chatMessages.scrollTop = chatMessages.scrollHeight;
                         }
-
-                        // 处理消息开始事件
-                        if (parsed.type === 'message_start' && parsed.message?.content) {
-                            // 可以在这里初始化消息结构
-                        }
-
-                        // 处理消息结束事件
-                        if (parsed.type === 'message_delta' && parsed.delta?.stop_reason) {
-                            // 消息结束，可以在这里做清理工作
-                        }
-
                     } catch (e) {
-                        console.warn('Failed to parse SSE data:', data, e);
+                        console.error('Failed to parse JSON:', data, e);
                     }
-                } else if (line === 'data: [DONE]') {
-                    // 流式响应结束
-                    break;
                 }
             }
         }
     } catch (error) {
         console.error('Stream reading error:', error);
-        throw new Error('流式响应读取失败: ' + error.message);
+        throw error;
     } finally {
         reader.releaseLock();
     }
