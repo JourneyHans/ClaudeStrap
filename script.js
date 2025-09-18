@@ -6,7 +6,7 @@ let conversations = [];
 
 // 版本信息
 const APP_VERSION = 'v0.1';
-const GIT_COMMIT = '845fa72';
+const GIT_COMMIT = 'e25d124';
 
 // 设置版本信息
 function setVersionInfo() {
