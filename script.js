@@ -386,8 +386,9 @@ async function sendMessage() {
     showLoading();
 
     try {
-        const response = await callClaudeAPIStream(message);
+        const response = await callClaudeAPI(message);
         hideLoading();
+        addMessage(response, 'bot');
     } catch (error) {
         hideLoading();
         addMessage(`错误: ${error.message}`, 'bot');
@@ -404,7 +405,7 @@ async function callClaudeAPI(message) {
             'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
+            model: 'claude-3-haiku-20240307',
             max_tokens: 1024,
             messages: [
                 {
@@ -416,8 +417,15 @@ async function callClaudeAPI(message) {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+        let errorDetails = `HTTP ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorDetails = errorData.error?.message || errorDetails;
+            console.error('API Error:', errorData);
+        } catch (e) {
+            console.error('Response not JSON:', await response.text());
+        }
+        throw new Error(errorDetails);
     }
 
     const data = await response.json();
@@ -463,7 +471,7 @@ async function callClaudeAPIStream(message) {
             'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
+            model: 'claude-3-haiku-20240307',
             max_tokens: 1024,
             stream: true,
             messages: [
@@ -476,8 +484,15 @@ async function callClaudeAPIStream(message) {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+        let errorDetails = `HTTP ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorDetails = errorData.error?.message || errorDetails;
+            console.error('API Error:', errorData);
+        } catch (e) {
+            console.error('Response not JSON:', await response.text());
+        }
+        throw new Error(errorDetails);
     }
 
     // 创建一个新的消息元素用于流式显示
